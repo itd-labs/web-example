@@ -1,0 +1,256 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+/*
+ * Палитра и метрики повторяют оформление итд.com: те же переменные,
+ * те же значения. Светлая тема — :root, тёмная — .dark (класс вешает @nuxt/ui).
+ */
+:root {
+  --itd-bg: #f5f5f5;
+  --itd-bg-2: #ebebeb;
+  --itd-text: #1a1a1a;
+  --itd-muted: #7a7a7a;
+  --itd-inverse: #ffffff;
+  --itd-accent: #3b82f6;
+  --itd-like: #f91880;
+  --itd-repost: #00ba7c;
+  --itd-border: rgba(0, 0, 0, 0.1);
+  --itd-border-subtle: rgba(0, 0, 0, 0.05);
+  --itd-block: #ffffff;
+  --itd-block-2: #f0f0f0;
+  --itd-hover: rgba(0, 0, 0, 0.05);
+  --itd-tab-active: #f0f0f0;
+  --itd-glass: rgba(255, 255, 255, 0.8);
+  --itd-btn: #1a1a1a;
+  --itd-btn-text: #ffffff;
+  --itd-shadow: 0 4px 16px rgb(0 0 0 / 8%);
+  --itd-poll-track: rgba(0, 0, 0, 0.1);
+  --itd-poll-fill: #000000;
+  --itd-poll-inverted-text: #ffffff;
+
+  --itd-sidebar-width: 200px;
+  --itd-sidebar-gap: 36px;
+  --itd-content-width: 650px;
+  --itd-card-radius: 36px;
+
+  /* Токены @nuxt/ui подводятся под палитру итд, чтобы UButton и UInput не выбивались. */
+  --ui-bg: var(--itd-bg);
+  --ui-bg-muted: var(--itd-bg-2);
+  --ui-bg-elevated: var(--itd-block-2);
+  --ui-bg-accented: var(--itd-bg-2);
+  --ui-bg-inverted: var(--itd-btn);
+  --ui-text-dimmed: var(--itd-muted);
+  --ui-text-muted: var(--itd-muted);
+  --ui-text-toned: var(--itd-text);
+  --ui-text: var(--itd-text);
+  --ui-text-highlighted: var(--itd-text);
+  --ui-text-inverted: var(--itd-btn-text);
+  --ui-border: var(--itd-border);
+  --ui-border-muted: var(--itd-border-subtle);
+  --ui-border-accented: var(--itd-border);
+  --ui-radius: 0.75rem;
+}
+
+.dark {
+  --itd-bg: #000000;
+  --itd-bg-2: #222222;
+  --itd-text: #f5f5f5;
+  --itd-muted: rgba(255, 255, 255, 0.5);
+  --itd-inverse: #000000;
+  --itd-accent: #0080ff;
+  --itd-border: rgba(255, 255, 255, 0.15);
+  --itd-border-subtle: rgba(255, 255, 255, 0.05);
+  --itd-block: #1c1c1c;
+  --itd-block-2: #2a2a2c;
+  --itd-hover: rgba(255, 255, 255, 0.08);
+  --itd-tab-active: rgba(255, 255, 255, 0.08);
+  --itd-glass: rgba(35, 35, 35, 0.8);
+  --itd-btn: #ffffff;
+  --itd-btn-text: #000000;
+  --itd-shadow: 0 4px 16px rgb(0 0 0 / 20%);
+  --itd-poll-track: rgba(255, 255, 255, 0.1);
+  --itd-poll-fill: #ffffff;
+  --itd-poll-inverted-text: #000000;
+}
+
+@theme inline {
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", sans-serif;
+
+  --color-itd-bg: var(--itd-bg);
+  --color-itd-bg-2: var(--itd-bg-2);
+  --color-itd-block: var(--itd-block);
+  --color-itd-block-2: var(--itd-block-2);
+  --color-itd-text: var(--itd-text);
+  --color-itd-muted: var(--itd-muted);
+  --color-itd-border: var(--itd-border);
+  --color-itd-border-subtle: var(--itd-border-subtle);
+  --color-itd-accent: var(--itd-accent);
+  --color-itd-like: var(--itd-like);
+  --color-itd-repost: var(--itd-repost);
+  --color-itd-hover: var(--itd-hover);
+  --color-itd-btn: var(--itd-btn);
+  --color-itd-btn-text: var(--itd-btn-text);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  background-color: var(--itd-bg);
+  color: var(--itd-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--itd-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--itd-muted);
+  border-radius: 4px;
+}
+
+/* --- Каркас страницы: боковые панели фиксированы, лента по центру. --- */
+
+@utility itd-shell {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+@utility itd-column {
+  position: relative;
+  width: 100%;
+  max-width: var(--itd-content-width);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 96px;
+}
+
+@media (min-width: 1174px) {
+  .itd-column {
+    padding-top: 36px;
+    padding-bottom: 48px;
+  }
+}
+
+/* --- Карточки и кнопки --- */
+
+@utility itd-card {
+  background-color: var(--itd-block);
+  border-radius: var(--itd-card-radius);
+  padding: 16px;
+}
+
+@media (min-width: 1174px) {
+  .itd-card {
+    padding: 24px;
+  }
+}
+
+@utility itd-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 9999px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--itd-muted);
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+}
+
+.itd-action:hover:not(:disabled) {
+  background: var(--itd-hover);
+}
+.itd-action:active:not(:disabled) svg {
+  transform: scale(0.85);
+}
+.itd-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.itd-action svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+@utility itd-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  border-radius: 18px;
+  font-weight: 500;
+  opacity: 0.5;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.itd-nav-item:hover {
+  background-color: var(--itd-block);
+}
+.itd-nav-item.itd-nav-active {
+  background-color: var(--itd-block);
+  opacity: 1;
+}
+
+@utility itd-input {
+  width: 100%;
+  padding: 16px;
+  background: transparent;
+  border: 1px solid var(--itd-border);
+  border-radius: 16px;
+  font-size: 16px;
+  color: var(--itd-text);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.itd-input::placeholder {
+  color: var(--itd-muted);
+}
+.itd-input:focus {
+  border-color: color-mix(in srgb, var(--itd-text) 40%, transparent);
+}
+
+/* --- Прочее --- */
+
+@utility itd-skeleton {
+  background: var(--itd-block-2);
+  border-radius: 8px;
+  animation: itd-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes itd-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes itd-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.itd-pop svg {
+  animation: itd-pop 0.4s ease;
+}
