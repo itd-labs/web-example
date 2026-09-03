@@ -1,4 +1,5 @@
 import { createMockServer } from '@itd-api/testing'
+import { crypt } from '@itd-api/crypto'
 import { FeedTab, ItdClient } from 'itd-api'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { DEMO_USER, sandboxSeed } from '../server/fixtures/seed'
@@ -16,6 +17,7 @@ describe('песочница', () => {
   beforeEach(() => {
     server = createMockServer({ seed: sandboxSeed() })
     itd = new ItdClient(server.clientOptions({ as: DEMO_USER }))
+    itd.use(crypt())
   })
 
   it('отдаёт ленту из фикстур', async () => {
@@ -29,6 +31,16 @@ describe('песочница', () => {
     const me = await itd.users.me()
 
     expect(me.username).toBe(DEMO_USER)
+  })
+
+  it('расшифровывает invisible и beecrypt в постах Ники', async () => {
+    const invisible = await itd.posts.get('post-5')
+    const beecrypt = await itd.posts.get('post-11')
+
+    expect(invisible.content).not.toContain('невидимый текст уже здесь')
+    expect(invisible.decoded?.content?.text).toContain('невидимый текст уже здесь')
+    expect(beecrypt.content).not.toContain('Ника')
+    expect(beecrypt.decoded?.content?.text).toContain('Теперь меня зовут «Ника»')
   })
 
   it('запоминает реакцию', async () => {

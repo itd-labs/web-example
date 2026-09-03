@@ -1,4 +1,11 @@
 import type { MockServerSeed } from '@itd-api/testing'
+import {
+  encodeBeeCrypt,
+  encodeInvisible,
+  FRAME_END,
+  FRAME_START,
+  INVISIBLE_ALPHABET,
+} from '@itd-api/crypto'
 import { NotificationType } from 'itd-api'
 
 /**
@@ -13,6 +20,12 @@ import { NotificationType } from 'itd-api'
 export const DEMO_USER = 'alice'
 
 const DAY = 24 * 60 * 60 * 1000
+
+/** Транспортный контейнер фрагмента встроенного invisible cipher со стабильным ID 0. */
+function invisibleFragment(text: string): string {
+  const cipherId = INVISIBLE_ALPHABET.charAt(0)
+  return `${FRAME_START}${cipherId}${encodeInvisible(text)}${FRAME_END}`
+}
 
 /** Отметка времени «столько-то часов назад» — лента должна выглядеть живой. */
 function hoursAgo(hours: number): string {
@@ -130,7 +143,7 @@ export function sandboxSeed(): MockServerSeed {
       {
         id: 'post-5',
         authorId: 'user-nika',
-        content: 'Спрятала в посте фразу. Кто с #crypto — прочитает, остальные посмотрят на пустое место.',
+        content: `Спрятала в посте фразу: ${invisibleFragment('невидимый текст уже здесь')}. Кто с #crypto — прочитает, остальные посмотрят на пустое место.`,
         createdAt: hoursAgo(14),
         likedBy: ['user-timur'],
       },
@@ -172,7 +185,7 @@ export function sandboxSeed(): MockServerSeed {
       {
         id: 'post-11',
         authorId: 'user-nika',
-        content: 'Зашифровала имя в профиле. Теперь меня зовут «••••••», и это по-своему честно.',
+        content: encodeBeeCrypt('Зашифровала имя в профиле. Теперь меня зовут «Ника», и это по-своему честно.'),
         createdAt: hoursAgo(52),
       },
       {
