@@ -4,7 +4,7 @@
  * На Vercel инстансы поднимаются и гаснут, поэтому память процесса не годится: посетителя
  * выбрасывало бы произвольно. Локально внешнее хранилище не нужно — хватает памяти.
  */
-function sessionStorage() {
+function serverStorage() {
   // Драйвер выбирается на сборке, поэтому его можно задать явно — на случай, когда
   // секреты доступны только в рантайме.
   const upstashUrl = process.env.NUXT_REDIS_KV_REST_API_URL
@@ -32,7 +32,8 @@ export default defineNuxtConfig({
 
   nitro: {
     storage: {
-      'itd-sessions': sessionStorage(),
+      'itd-sessions': serverStorage(),
+      'itd-sandboxes': serverStorage(),
     },
   },
 

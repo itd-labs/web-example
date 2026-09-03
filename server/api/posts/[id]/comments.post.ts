@@ -14,8 +14,8 @@ export default defineItdHandler(async (event) => {
     })
   }
 
-  const { itd, mode, sid } = await useItd(event)
-  if (mode === 'sandbox') assertQuota(sid, content)
+  const { itd, mode, sandbox } = await useItd(event)
+  if (mode === 'sandbox' && sandbox) assertQuota(sandbox, content)
 
   return await itd.posts.comment(id, { content, attachmentIds })
 })

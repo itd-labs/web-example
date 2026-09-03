@@ -20,6 +20,7 @@ export interface ItdContext {
   itd: ItdClient
   mode: ItdMode
   sid: string
+  sandbox?: Sandbox
 }
 
 /** Сколько живых клиентов держим в памяти инстанса. */
@@ -124,7 +125,8 @@ export async function useItd(event: H3Event): Promise<ItdContext> {
   const sandboxSid = await ensureSessionId(event)
   if (!sandboxSid) throw unauthorized()
 
-  return { itd: sandboxClient(sandboxSid), mode: 'sandbox', sid: sandboxSid }
+  const sandbox = await sandboxClient(sandboxSid)
+  return { itd: sandbox.client, mode: 'sandbox', sid: sandboxSid, sandbox }
 }
 
 /** Клиент для роута, которому режим безразличен. */

@@ -21,8 +21,8 @@ export default defineItdHandler(async (event) => {
     })
   }
 
-  const { itd, mode, sid } = await useItd(event)
-  if (mode === 'sandbox') assertQuota(sid, content)
+  const { itd, mode, sandbox } = await useItd(event)
+  if (mode === 'sandbox' && sandbox) assertQuota(sandbox, content)
 
   const created = await itd.posts.create({
     content,
@@ -37,7 +37,7 @@ export default defineItdHandler(async (event) => {
   // один, и запись без единой реакции выглядит уныло. Жители отвечают на неё сами,
   // после чего пост перечитывается — счётчики к этому моменту уже другие. Журнал
   // вызовов показывает всю цепочку, а тело ответа принадлежит последнему вызову.
-  await livenPost(sid, created.id)
+  if (sandbox) await livenPost(sandbox, created.id)
 
   return await itd.posts.get(created.id)
 })
