@@ -46,6 +46,7 @@ const {
   reload,
   loadMore,
   prepend,
+  remove: removeComment,
 } = useCursorList<Comment>(
   async (cursor) => {
     const page = await itdFetch<ItdPage<Comment>>(
@@ -86,6 +87,17 @@ async function sendComment(payload: ComposerPayload) {
   } finally {
     sending.value = false
   }
+}
+
+function onCommentDeleted(id: string) {
+  removeComment(id)
+  if (post.value) {
+    post.value = { ...post.value, commentsCount: Math.max(0, post.value.commentsCount - 1) }
+  }
+}
+
+function onPostDeleted() {
+  if (post.value) navigateTo(`/@${post.value.author.username}`, { replace: true })
 }
 
 watch([sort, postId], () => reload())
@@ -131,6 +143,7 @@ onMounted(() => reload())
           @like="toggleLike"
           @repost="toggleRepost"
           @comment="composer?.focus()"
+          @deleted="onPostDeleted"
         />
 
         <div class="itd-card flex flex-col gap-5">
@@ -201,6 +214,8 @@ onMounted(() => reload())
                 :key="comment.id"
                 :comment="comment"
                 :my-avatar="me?.avatar ?? ''"
+                :can-delete="post.isOwner"
+                @deleted="onCommentDeleted"
               />
             </div>
 

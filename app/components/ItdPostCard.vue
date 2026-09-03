@@ -23,6 +23,7 @@ const emit = defineEmits<{
   like: [post: Post]
   repost: [post: Post]
   comment: [post: Post]
+  deleted: [id: string]
 }>()
 
 const postPath = computed(() => `/@${props.post.author.username}/post/${props.post.id}`)
@@ -32,6 +33,27 @@ const authorPath = computed(() => `/@${props.post.author.username}`)
 const original = computed(() => props.post.originalPost)
 
 const router = useRouter()
+const itdFetch = useItdFetch()
+const menuOpen = ref(false)
+const deleting = ref(false)
+const deleteError = ref('')
+
+async function deletePost() {
+  if (!props.post.isOwner || deleting.value) return
+
+  deleting.value = true
+  deleteError.value = ''
+
+  try {
+    await itdFetch(`/api/posts/${encodeURIComponent(props.post.id)}`, { method: 'DELETE' })
+    menuOpen.value = false
+    emit('deleted', props.post.id)
+  } catch (cause) {
+    deleteError.value = apiErrorMessage(cause)
+  } finally {
+    deleting.value = false
+  }
+}
 
 function openPost(event: MouseEvent) {
   if (props.standalone) return
@@ -78,7 +100,35 @@ function openPost(event: MouseEvent) {
           >
             {{ timeAgo(post.createdAt) }}
           </time>
+
+          <UPopover v-if="post.isOwner" v-model:open="menuOpen">
+            <button
+              type="button"
+              aria-label="Действия с постом"
+              class="flex size-7 shrink-0 items-center justify-center rounded-full text-itd-muted transition-colors hover:bg-itd-bg-2 hover:text-itd-text cursor-pointer"
+              :disabled="deleting"
+              @click.stop
+            >
+              <UIcon name="i-lucide-ellipsis" class="size-4" />
+            </button>
+
+            <template #content>
+              <button
+                type="button"
+                class="flex min-w-36 items-center gap-2 px-3 py-2 text-sm text-red-500 transition-colors hover:bg-itd-bg-2 cursor-pointer disabled:opacity-50"
+                :disabled="deleting"
+                @click.stop="deletePost"
+              >
+                <UIcon name="i-lucide-trash-2" class="size-4" />
+                <span>{{ deleting ? 'Удаляем…' : 'Удалить' }}</span>
+              </button>
+            </template>
+          </UPopover>
         </header>
+
+        <p v-if="deleteError" class="text-xs text-red-500">
+          {{ deleteError }}
+        </p>
 
         <p v-if="post.wallRecipient" class="text-xs text-itd-muted">
           на стене

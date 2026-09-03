@@ -9,7 +9,7 @@ const tag = computed(() => String(route.params.tag))
 
 useHead({ title: () => `#${tag.value}` })
 
-const { items, pending, loadingMore, error, hasMore, reload, loadMore, patch }
+const { items, pending, loadingMore, error, hasMore, reload, loadMore, patch, remove: removePost }
   = useCursorList<Post>(
     async (cursor) => {
       const page = await itdFetch<ItdPage<Post>>(
@@ -75,6 +75,7 @@ onMounted(() => reload())
           @like="toggleLike"
           @repost="toggleRepost"
           @comment="openComments"
+          @deleted="removePost"
         />
 
         <ItdLoadMore :has-more="hasMore" :loading="loadingMore" @load="loadMore()" />

@@ -13,6 +13,7 @@ definePageMeta({ layout: 'plain' })
 
 const { me, forgetToken } = useAuth()
 const { info, fetchMode } = useMode()
+const { initializeDefault: initializeDefaultPin } = usePinnedProfiles()
 const itdFetch = useItdFetch()
 
 const accessToken = ref('')
@@ -36,6 +37,9 @@ async function submit() {
         ...(refreshToken.value.trim() ? { refreshToken: refreshToken.value.trim() } : {}),
       },
     })
+
+    // Только первая успешная авторизация заполняет ещё не созданный локальный список.
+    initializeDefaultPin()
 
     accessToken.value = ''
     refreshToken.value = ''

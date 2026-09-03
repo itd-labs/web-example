@@ -11,9 +11,13 @@ const itdFetch = useItdFetch()
  * пагинация не курсорная, в отличие от комментариев к посту.
  */
 const props = withDefaults(
-  defineProps<{ comment: Comment, myAvatar?: string, depth?: number }>(),
-  { myAvatar: '', depth: 0 },
+  defineProps<{ comment: Comment, myAvatar?: string, depth?: number, canDelete?: boolean }>(),
+  { myAvatar: '', depth: 0, canDelete: false },
 )
+
+const emit = defineEmits<{
+  deleted: [id: string]
+}>()
 
 interface RepliesPage {
   items: Comment[]
@@ -32,6 +36,8 @@ const expanded = ref(false)
 const liking = ref(false)
 const replying = ref(false)
 const sending = ref(false)
+const deleting = ref(false)
+const menuOpen = ref(false)
 const error = ref('')
 
 const composer = useTemplateRef<{ reset: () => void, focus: () => void }>('composer')
@@ -110,6 +116,34 @@ async function sendReply(payload: ComposerPayload) {
     sending.value = false
   }
 }
+
+async function deleteComment() {
+  if (!props.canDelete || deleting.value) return
+
+  deleting.value = true
+  error.value = ''
+
+  try {
+    await itdFetch(`/api/comments/${encodeURIComponent(comment.value.id)}`, { method: 'DELETE' })
+    menuOpen.value = false
+    emit('deleted', comment.value.id)
+  } catch (cause) {
+    error.value = apiErrorMessage(cause)
+  } finally {
+    deleting.value = false
+  }
+}
+
+function onReplyDeleted(id: string) {
+  if (replies.value.some(reply => reply.id === id)) {
+    replies.value = replies.value.filter(reply => reply.id !== id)
+    comment.value = {
+      ...comment.value,
+      repliesCount: Math.max(0, (comment.value.repliesCount ?? 0) - 1),
+    }
+  }
+  emit('deleted', id)
+}
 </script>
 
 <template>
@@ -135,6 +169,29 @@ async function sendReply(payload: ComposerPayload) {
         >
           {{ timeAgo(comment.createdAt) }}
         </time>
+
+        <UPopover v-if="canDelete" v-model:open="menuOpen">
+          <button
+            type="button"
+            aria-label="Действия с комментарием"
+            class="flex size-6 shrink-0 items-center justify-center rounded-full text-itd-muted transition-colors hover:bg-itd-bg-2 hover:text-itd-text cursor-pointer"
+            :disabled="deleting"
+          >
+            <UIcon name="i-lucide-ellipsis" class="size-3.5" />
+          </button>
+
+          <template #content>
+            <button
+              type="button"
+              class="flex min-w-36 items-center gap-2 px-3 py-2 text-sm text-red-500 transition-colors hover:bg-itd-bg-2 cursor-pointer disabled:opacity-50"
+              :disabled="deleting"
+              @click="deleteComment"
+            >
+              <UIcon name="i-lucide-trash-2" class="size-4" />
+              <span>{{ deleting ? 'Удаляем…' : 'Удалить' }}</span>
+            </button>
+          </template>
+        </UPopover>
       </header>
 
       <p v-if="comment.replyTo" class="text-xs text-itd-muted">
@@ -193,6 +250,8 @@ async function sendReply(payload: ComposerPayload) {
           :comment="reply"
           :my-avatar="myAvatar"
           :depth="depth + 1"
+          :can-delete="canDelete"
+          @deleted="onReplyDeleted"
         />
       </div>
 

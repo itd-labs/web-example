@@ -20,7 +20,7 @@ const tab = computed<FeedTabKey>({
   },
 })
 
-const { items, pending, loadingMore, error, hasMore, reload, loadMore, patch, prepend }
+const { items, pending, loadingMore, error, hasMore, reload, loadMore, patch, prepend, remove: removePost }
   = useCursorList<Post>(
     async (cursor) => {
       const page = await itdFetch<ItdPage<Post>>('/api/feed', {
@@ -108,6 +108,7 @@ onMounted(() => reload())
           @like="toggleLike"
           @repost="toggleRepost"
           @comment="openComments"
+          @deleted="removePost"
         />
 
         <ItdLoadMore :has-more="hasMore" :loading="loadingMore" @load="loadMore()" />

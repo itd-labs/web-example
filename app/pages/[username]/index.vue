@@ -80,7 +80,7 @@ watch(canSeeLikes, (allowed) => {
   if (!allowed && tab.value === 'liked') tab.value = 'posts'
 })
 
-const { items, pending, loadingMore, error, hasMore, reload, loadMore, patch, prepend }
+const { items, pending, loadingMore, error, hasMore, reload, loadMore, patch, prepend, remove: removePost }
   = useCursorList<Post>(
     async (cursor) => {
       const path = tab.value === 'posts' ? 'posts' : 'liked'
@@ -397,6 +397,7 @@ watch(
             @like="toggleLike"
             @repost="toggleRepost"
             @comment="openComments"
+            @deleted="removePost"
           />
 
           <ItdLoadMore :has-more="hasMore" :loading="loadingMore" @load="loadMore()" />

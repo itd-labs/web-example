@@ -9,6 +9,15 @@ export interface PinnedProfile {
 
 const STORAGE_KEY = 'itd-pinned-profiles'
 
+const DEFAULT_PROFILE: PinnedProfile = {
+  id: 'b89dee4f-2f83-4215-8dc4-a19387330c93',
+  username: 'kiow',
+  displayName: 'Kiow',
+  avatar: '🩵',
+  verified: true,
+  hasNuksta: true,
+}
+
 /** Небольшой локальный список профилей для быстрых переходов. */
 export function usePinnedProfiles() {
   const profiles = useState<PinnedProfile[]>('pinned-profiles', () => [])
@@ -60,6 +69,20 @@ export function usePinnedProfiles() {
     save()
   }
 
+  /**
+   * Заполняет ещё не созданное хранилище первым профилем.
+   *
+   * Пустой сохранённый массив считается осознанным выбором пользователя: если он всё
+   * открепил, профиль по умолчанию больше не появляется.
+   */
+  function initializeDefault() {
+    if (!import.meta.client || localStorage.getItem(STORAGE_KEY) !== null) return
+
+    profiles.value = [normalize(DEFAULT_PROFILE)]
+    loaded.value = true
+    save()
+  }
+
   /** Освежает сохранённые имя и ник после открытия уже закреплённого профиля. */
   function sync(profile: PinnedProfile) {
     load()
@@ -73,5 +96,5 @@ export function usePinnedProfiles() {
 
   onMounted(load)
 
-  return { profiles, isPinned, toggle, sync }
+  return { profiles, isPinned, toggle, sync, initializeDefault }
 }
