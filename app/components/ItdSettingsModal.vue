@@ -174,6 +174,25 @@ async function uploadBanner(event: Event) {
   <UModal v-model:open="open" :ui="{ content: 'max-w-3xl' }">
     <template #content>
       <div class="flex max-h-[85vh] flex-col overflow-hidden bg-itd-block sm:flex-row">
+        <!-- Ниже sm разделы стоят строкой сверху, и закрывать модалку логично из шапки:
+             рядом с заголовком раздела крестик выглядел случайной кнопкой. На широком
+             экране шапки нет — там заголовок и крестик стоят над самим разделом. -->
+        <header
+          class="flex shrink-0 items-center justify-between gap-3 border-b border-itd-border px-4 py-3 sm:hidden"
+        >
+          <h2 class="text-lg font-semibold text-itd-text">
+            Настройки
+          </h2>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            icon="i-lucide-x"
+            aria-label="Закрыть"
+            @click="open = false"
+          />
+        </header>
+
         <nav
           class="flex shrink-0 gap-1 overflow-x-auto border-b border-itd-border p-4 sm:w-52 sm:flex-col sm:border-b-0 sm:border-r"
         >
@@ -203,6 +222,7 @@ async function uploadBanner(event: Event) {
               {{ SECTIONS.find(item => item.key === section)?.label }}
             </h2>
             <UButton
+              class="hidden sm:inline-flex"
               color="neutral"
               variant="ghost"
               size="sm"
@@ -346,7 +366,6 @@ async function uploadBanner(event: Event) {
               <label class="flex items-center justify-between gap-4">
                 <span class="flex flex-col">
                   <span class="text-sm font-medium text-itd-text">Закрытый профиль</span>
-                  <span class="text-xs text-itd-muted">Подписка требует одобрения</span>
                 </span>
                 <USwitch
                   :model-value="privacy.isPrivate"

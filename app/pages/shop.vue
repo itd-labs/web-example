@@ -44,7 +44,7 @@ onMounted(load)
 <template>
   <div class="flex flex-col">
     <header
-      class="sticky top-0 z-3 px-4 py-4 backdrop-blur-md bg-[var(--itd-glass)] min-[1174px]:rounded-3xl"
+      class="itd-safe-top sticky top-0 z-3 px-4 pb-4 backdrop-blur-md bg-[var(--itd-glass)] min-[1174px]:rounded-3xl"
     >
       <h1 class="text-lg font-semibold text-itd-text">Магазин</h1>
     </header>

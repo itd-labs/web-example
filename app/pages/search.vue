@@ -55,7 +55,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 
 <template>
   <div class="flex flex-col">
-    <header class="sticky top-0 z-3 px-4 py-4 backdrop-blur-md bg-[var(--itd-glass)] min-[1174px]:rounded-3xl">
+    <header class="itd-safe-top sticky top-0 z-3 px-4 pb-4 backdrop-blur-md bg-[var(--itd-glass)] min-[1174px]:rounded-3xl">
       <span class="relative block w-full">
         <UIcon
           name="i-lucide-search"

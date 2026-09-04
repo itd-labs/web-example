@@ -23,6 +23,14 @@ const error = ref('')
 
 const isLive = computed(() => info.value?.mode === 'live')
 
+/**
+ * Токен сохранён, но профиль по нему уже не отдают — чаще всего истёк срок действия.
+ *
+ * Режим остаётся `live`, пока запись жива, поэтому одного его мало: без этой проверки
+ * страница предлагала перейти к ленте, которая тут же отвечала бы `401`.
+ */
+const expired = computed(() => isLive.value && me.value === null)
+
 async function submit() {
   if (pending.value || !accessToken.value.trim()) return
 
@@ -77,10 +85,10 @@ onMounted(() => {
       </p>
     </div>
 
-    <div v-if="isLive" class="itd-card flex flex-col gap-4">
+    <div v-if="isLive && me" class="itd-card flex flex-col gap-4">
       <p class="text-itd-text">
-        Токен уже сохранён<template v-if="me">: вы вошли как
-          <NuxtLink :to="`/@${me.username}`" class="text-itd-accent">@{{ me.username }}</NuxtLink></template>.
+        Токен уже сохранён: вы вошли как
+        <NuxtLink :to="`/@${me.username}`" class="text-itd-accent">@{{ me.username }}</NuxtLink>.
       </p>
       <p class="text-sm text-itd-muted">
         «Забыть токен» удаляет запись на сервере демо. Сессия на итд.com при этом остаётся
@@ -98,7 +106,25 @@ onMounted(() => {
       </div>
     </div>
 
-    <form v-else class="itd-card flex flex-col gap-4" @submit.prevent="submit">
+    <div v-else-if="expired" class="itd-card flex flex-col gap-4">
+      <p class="flex items-center gap-2 text-itd-text">
+        <UIcon name="i-lucide-key-round" class="size-4 shrink-0 text-itd-muted" />
+        Сохранённый токен больше не работает
+      </p>
+      <p class="text-sm text-itd-muted">
+        Скорее всего, истёк срок действия: сервер итд.com перестал отдавать по нему профиль.
+        Введите новый access token ниже — или сотрите запись, и демо вернётся в песочницу.
+      </p>
+      <UButton
+        color="neutral"
+        variant="subtle"
+        class="self-start rounded-full"
+        label="Забыть токен"
+        @click="signOut"
+      />
+    </div>
+
+    <form v-if="!isLive || expired" class="itd-card flex flex-col gap-4" @submit.prevent="submit">
       <label class="flex flex-col gap-1">
         <span class="text-sm font-medium text-itd-text">Access token</span>
         <input

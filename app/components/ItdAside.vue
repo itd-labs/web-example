@@ -91,7 +91,7 @@ const links = [
           </NuxtLink>
         </li>
       </ul>
-      <span>© 2026 ООО «ИТД»</span>
+      <span>© 2026 Kiow</span>
     </div>
   </aside>
 </template>

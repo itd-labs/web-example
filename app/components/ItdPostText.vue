@@ -28,6 +28,15 @@ const STYLES: Partial<Record<string, string>> = {
   [SpanType.Quote]: 'border-l-3 border-itd-accent pl-3 text-itd-muted italic',
 }
 
+/** Enter и пробел на нажимаемом участке: `span` сам их в click не переводит. */
+function onTapKey(event: KeyboardEvent) {
+  if (event.key !== 'Enter' && event.key !== ' ') return
+
+  event.preventDefault()
+  const target = event.currentTarget as HTMLElement
+  target.click()
+}
+
 function chunkClasses(types: string[]) {
   return [
     ...types.map(type => STYLES[type]).filter(Boolean),
@@ -51,23 +60,54 @@ function chunkClasses(types: string[]) {
         @click.stop
       >{{ chunk.text }}</NuxtLink>
 
-      <button
+      <!-- Внутри абзаца нажимаемые участки — `span`, а не `button`: кнопку браузер
+           рисует виджетом, и длинный фрагмент переставал переноситься по словам,
+           получал своё выравнивание по центру и свой шрифт. -->
+      <span
         v-else-if="chunk.types.includes(SpanType.Spoiler)"
-        type="button"
+        role="button"
+        tabindex="0"
         class="rounded px-0.5 transition-colors"
         :class="[
           revealed.has(index)
             ? 'bg-itd-bg-2 text-itd-text'
-            : 'bg-itd-text text-transparent cursor-pointer',
+            : 'itd-tap-text bg-itd-text text-transparent cursor-pointer',
           chunkClasses(chunk.types.filter(type => type !== SpanType.Spoiler)),
         ]"
         @click.stop="reveal(index)"
-      >{{ chunk.text }}</button>
+        @keydown="onTapKey"
+      >{{ chunk.text }}</span>
+
+      <!-- Расшифрованный участок объясняется всплывающей подсказкой по нажатию:
+           `title` на телефоне не показывается, а долгое нажатие уходило в выделение текста. -->
+      <UPopover v-else-if="chunk.types.includes('crypto')">
+        <span
+          role="button"
+          tabindex="0"
+          class="itd-tap-text cursor-help"
+          :class="chunkClasses(chunk.types)"
+          :aria-label="`Расшифровано, шифр ${chunk.cipher ?? 'неизвестен'}`"
+          @click.stop
+          @keydown="onTapKey"
+        >{{ chunk.text }}</span>
+
+        <template #content>
+          <div class="flex max-w-64 flex-col gap-1 px-3 py-2">
+            <span class="flex items-center gap-1.5 text-sm font-medium text-itd-text">
+              <UIcon name="i-lucide-lock-keyhole" class="size-3.5 text-itd-accent" />
+              Шифр: {{ chunk.cipher ?? 'неизвестен' }}
+            </span>
+            <span class="text-xs text-itd-muted">
+              Участок был зашифрован в посте. Расшифровал его плагин
+              <code>@itd-api/crypto</code> — SDK кладёт результат в <code>decoded</code>.
+            </span>
+          </div>
+        </template>
+      </UPopover>
 
       <span
         v-else-if="chunk.types.length"
         :class="chunkClasses(chunk.types)"
-        :title="chunk.types.includes('crypto') ? `Crypto: ${chunk.cipher ?? 'unknown'}` : undefined"
       >{{ chunk.text }}</span>
 
       <template v-else>{{ chunk.text }}</template>

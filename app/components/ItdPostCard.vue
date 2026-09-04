@@ -55,13 +55,30 @@ async function deletePost() {
   }
 }
 
+/** Клик по карточке уводит на её страницу, кроме кликов по ссылкам и выделения текста. */
+function opensPage(event: MouseEvent) {
+  if (window.getSelection()?.toString()) return false
+  if (event.target instanceof HTMLElement && event.target.closest('a, button, video, audio')) return false
+
+  return true
+}
+
 function openPost(event: MouseEvent) {
   if (props.standalone) return
-  // Выделение текста не должно уводить со страницы.
-  if (window.getSelection()?.toString()) return
-  if (event.target instanceof HTMLElement && event.target.closest('a, button, video, audio')) return
+  if (!opensPage(event)) return
 
   router.push(postPath.value)
+}
+
+/**
+ * Вложенная карточка ведёт к исходному посту — в том числе на странице самого репоста,
+ * где внешняя карточка уже никуда не ведёт.
+ */
+function openOriginal(event: MouseEvent) {
+  const source = original.value
+  if (!source || !opensPage(event)) return
+
+  router.push(`/@${source.author.username}/post/${source.id}`)
 }
 </script>
 
@@ -150,7 +167,9 @@ function openPost(event: MouseEvent) {
 
           <article
             v-if="original"
-            class="flex flex-col gap-2 rounded-xl border border-itd-border p-3"
+            class="flex cursor-pointer flex-col gap-2 rounded-lg border border-itd-border p-3 transition-colors hover:bg-itd-bg-2"
+            title="Открыть исходный пост"
+            @click.stop="openOriginal"
           >
             <div class="flex items-center gap-2 min-w-0">
               <ItdAvatar :avatar="original.author.avatar" size="xs" />
@@ -163,9 +182,35 @@ function openPost(event: MouseEvent) {
               <time class="ml-auto shrink-0 text-xs text-itd-muted">
                 {{ timeAgo(original.createdAt) }}
               </time>
+              <UIcon name="i-lucide-arrow-up-right" class="size-3.5 shrink-0 text-itd-muted" />
             </div>
             <ItdPostText v-if="postText(original).trim()" :text="postText(original)" :spans="postSpans(original)" />
             <ItdPostMedia v-if="original.attachments.length" :attachments="original.attachments" />
+
+            <!-- Счётчики исходного поста только показываются: реакции и репосты
+                 относятся к самой карточке, а не к вложенной. -->
+            <footer class="flex items-center gap-4 text-xs text-itd-muted tabular-nums">
+              <span class="flex items-center gap-1.5" :class="original.isLiked && 'text-itd-like'">
+                <UIcon
+                  name="i-lucide-heart"
+                  class="size-4"
+                  :class="original.isLiked && 'fill-current'"
+                />
+                {{ formatCount(original.likesCount) }}
+              </span>
+              <span class="flex items-center gap-1.5">
+                <UIcon name="i-lucide-message-circle" class="size-4" />
+                {{ formatCount(original.commentsCount) }}
+              </span>
+              <span class="flex items-center gap-1.5" :class="original.isReposted && 'text-itd-repost'">
+                <UIcon name="i-lucide-repeat-2" class="size-4" />
+                {{ formatCount(original.repostsCount) }}
+              </span>
+              <span class="ml-auto flex items-center gap-1.5">
+                <UIcon name="i-lucide-eye" class="size-4" />
+                {{ formatCount(original.viewsCount) }}
+              </span>
+            </footer>
           </article>
         </div>
 

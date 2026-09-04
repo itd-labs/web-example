@@ -336,8 +336,20 @@ watch(
               Регистрация: {{ joinedAt(profile.createdAt) }}
             </span>
 
+            <!-- Ниже 1174 px кнопка из шапки не помещается рядом с аватаром,
+                 поэтому она повторяется здесь во всю ширину. -->
             <UButton
-              v-if="!isMe"
+              v-if="isMe"
+              color="neutral"
+              size="md"
+              block
+              class="rounded-full min-[1174px]:hidden"
+              icon="i-lucide-pencil"
+              label="Редактировать"
+              @click="settingsOpen = true"
+            />
+            <UButton
+              v-else
               color="neutral"
               :variant="profile.isFollowing ? 'subtle' : 'solid'"
               size="md"
@@ -351,7 +363,7 @@ watch(
         </div>
       </header>
 
-      <div class="sticky top-0 z-3 p-4 min-[1174px]:top-4">
+      <div class="itd-safe-top sticky top-0 z-3 px-4 pb-4 min-[1174px]:top-4">
         <ItdTabs v-model="tab" :tabs="TABS" />
       </div>
 

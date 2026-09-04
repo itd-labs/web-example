@@ -13,8 +13,6 @@ export interface InspectorEntry {
 /** Сколько строк держим в журнале — вместе с ответами. */
 const MAX_ENTRIES = 50
 
-let counter = 0
-
 /**
  * Журнал вызовов SDK для панели «под капотом».
  *
@@ -24,6 +22,7 @@ let counter = 0
 export function useInspector() {
   const entries = useState<InspectorEntry[]>('itd:inspector', () => [])
   const open = useState<boolean>('itd:inspector-open', () => false)
+  const sequence = useState<number>('itd:inspector-sequence', () => 0)
   const enabled = useRuntimeConfig().public.inspector
 
   /** Кладёт записи одного запроса. Ответ достаётся последнему вызову — он его и вернул. */
@@ -31,17 +30,13 @@ export function useInspector() {
     if (!enabled || meta.length === 0) return
 
     const added = meta.map((item, index) => ({
-      id: ++counter,
+      id: (sequence.value += 1),
       at: Date.now(),
       meta: item,
       response: index === meta.length - 1 ? response : undefined,
     }))
 
     entries.value = [...added.reverse(), ...entries.value].slice(0, MAX_ENTRIES)
-  }
-
-  function clear() {
-    entries.value = []
   }
 
   function toggle() {
@@ -64,5 +59,5 @@ export function useInspector() {
     }
   }
 
-  return { entries, open, enabled, push, clear, toggle, restore }
+  return { entries, open, enabled, push, toggle, restore }
 }

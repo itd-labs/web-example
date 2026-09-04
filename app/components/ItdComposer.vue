@@ -61,6 +61,17 @@ const uploadError = ref('')
 const spans = ref<Span[]>([])
 const formatMenu = reactive({ open: false, x: 0, y: 0, start: 0, end: 0 })
 
+/**
+ * Последнее выделение в поле.
+ *
+ * Кнопка разметки забирает фокус у `textarea`, поэтому границы снимаются заранее —
+ * на каждое изменение выделения и на нажатие самой кнопки.
+ */
+const selection = reactive({ start: 0, end: 0 })
+
+/** Подсказка «сначала выделите текст» — после нажатия кнопки по пустому выделению. */
+const needsSelection = ref(false)
+
 const FORMAT_ITEMS = [
   { type: SpanType.Bold, label: 'Жирный', icon: 'i-lucide-bold' },
   { type: SpanType.Italic, label: 'Курсив', icon: 'i-lucide-italic' },
@@ -137,22 +148,66 @@ function insertEmoji(emoji: string) {
 function onTextInput() {
   if (spans.value.length > 0) spans.value = []
   formatMenu.open = false
+  syncSelection()
+}
+
+/** Снимает границы выделения с поля. */
+function syncSelection() {
+  const element = field.value
+  if (!element) return
+
+  selection.start = element.selectionStart ?? 0
+  selection.end = element.selectionEnd ?? selection.start
+
+  if (selection.end > selection.start) needsSelection.value = false
+}
+
+/**
+ * Показывает меню разметки, не выпуская его за края экрана: габариты ~210 × 330.
+ *
+ * Высота считается по видимой части окна: на телефоне её забирает экранная клавиатура,
+ * и меню, посчитанное по `innerHeight`, уехало бы под неё.
+ */
+function showFormatMenu(start: number, end: number, x: number, y: number) {
+  const view = window.visualViewport
+  const top = view?.offsetTop ?? 0
+  const height = view?.height ?? window.innerHeight
+
+  formatMenu.open = true
+  formatMenu.start = start
+  formatMenu.end = end
+  formatMenu.x = Math.max(8, Math.min(x, window.innerWidth - 210))
+  formatMenu.y = Math.max(top + 8, Math.min(y, top + height - 330))
+  needsSelection.value = false
 }
 
 function onContextMenu(event: MouseEvent) {
   if (!props.formatting) return
 
-  const element = field.value
-  const start = element?.selectionStart ?? 0
-  const end = element?.selectionEnd ?? start
-  if (start === end) return
+  syncSelection()
+  if (selection.end === selection.start) return
 
   event.preventDefault()
-  formatMenu.open = true
-  formatMenu.start = start
-  formatMenu.end = end
-  formatMenu.x = Math.min(event.clientX, window.innerWidth - 210)
-  formatMenu.y = Math.min(event.clientY, window.innerHeight - 330)
+  showFormatMenu(selection.start, selection.end, event.clientX, event.clientY)
+}
+
+/**
+ * Кнопка разметки — то же меню для касания: правой кнопки мыши на телефоне нет,
+ * а долгое нажатие перехватывает системное меню выделения.
+ */
+function onFormatButton(event: MouseEvent) {
+  if (formatMenu.open) {
+    formatMenu.open = false
+    return
+  }
+
+  if (selection.end === selection.start) {
+    needsSelection.value = true
+    return
+  }
+
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  showFormatMenu(selection.start, selection.end, rect.left, rect.bottom + 8)
 }
 
 function isSelectedFormat(item: (typeof FORMAT_ITEMS)[number]) {
@@ -200,6 +255,7 @@ function applyFormat(item: (typeof FORMAT_ITEMS)[number]) {
   nextTick(() => {
     field.value?.focus()
     field.value?.setSelectionRange(offset, offset + length)
+    syncSelection()
   })
 }
 
@@ -267,12 +323,16 @@ watch(text, grow)
 onMounted(() => {
   window.addEventListener('click', closeFormatMenu)
   window.addEventListener('blur', closeFormatMenu)
+  // Выделение мышью и пальцем не всегда доходит до событий самого поля, поэтому
+  // границы дополнительно снимаются с общего события документа.
+  document.addEventListener('selectionchange', syncSelection)
   if (props.autofocus) focus()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('click', closeFormatMenu)
   window.removeEventListener('blur', closeFormatMenu)
+  document.removeEventListener('selectionchange', syncSelection)
 })
 
 function closeFormatMenu() {
@@ -318,19 +378,30 @@ defineExpose({ reset, focus })
         @paste="onPaste"
         @input="onTextInput"
         @contextmenu="onContextMenu"
+        @select="syncSelection"
+        @keyup="syncSelection"
+        @pointerup="syncSelection"
+        @focus="syncSelection"
         @keydown.ctrl.enter.prevent="submit"
         @keydown.meta.enter.prevent="submit"
       />
 
-      <p v-if="formatting" class="text-xs text-itd-muted">
-        Выделите текст и нажмите правую кнопку мыши, чтобы добавить форматирование.
+      <p v-if="formatting" class="text-xs" :class="needsSelection ? 'text-itd-accent' : 'text-itd-muted'">
+        <template v-if="needsSelection">
+          Сначала выделите текст — разметка применяется к выделенному участку.
+        </template>
+        <template v-else>
+          Выделите текст и нажмите
+          <UIcon name="i-lucide-type" class="inline size-3.5 align-[-2px]" />
+          — на компьютере то же меню открывает правая кнопка мыши.
+        </template>
       </p>
 
       <div v-if="attachments.length || uploading" class="grid grid-cols-4 gap-2">
         <div
           v-for="item in attachments"
           :key="item.id"
-          class="relative aspect-square overflow-hidden rounded-xl bg-itd-block-2"
+          class="relative aspect-square overflow-hidden rounded-lg bg-itd-block-2"
         >
           <video
             v-if="item.mimeType.startsWith('video/')"
@@ -359,7 +430,7 @@ defineExpose({ reset, focus })
         <div
           v-for="index in uploading"
           :key="`pending-${index}`"
-          class="itd-skeleton flex aspect-square items-center justify-center rounded-xl"
+          class="itd-skeleton flex aspect-square items-center justify-center rounded-lg"
         >
           <UIcon name="i-lucide-loader-circle" class="size-5 animate-spin text-itd-muted" />
         </div>
@@ -406,6 +477,20 @@ defineExpose({ reset, focus })
             </template>
           </UPopover>
 
+          <!-- Меню разметки для касания: pointerdown снимает выделение до того,
+               как кнопка заберёт фокус у поля. -->
+          <button
+            v-if="formatting"
+            type="button"
+            title="Разметка выделенного текста"
+            aria-label="Разметка выделенного текста"
+            class="flex size-9 items-center justify-center rounded-full transition-colors hover:bg-itd-bg-2 hover:text-itd-accent cursor-pointer"
+            :class="formatMenu.open ? 'text-itd-accent' : 'text-itd-muted'"
+            @pointerdown="syncSelection"
+            @click.stop="onFormatButton"
+          >
+            <UIcon name="i-lucide-type" class="size-5" />
+          </button>
         </div>
 
         <div class="flex items-center gap-3">

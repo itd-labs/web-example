@@ -62,7 +62,7 @@ onMounted(() => reload())
 
 <template>
   <div class="flex flex-col">
-    <div class="sticky top-0 z-3 p-4 min-[1174px]:top-4">
+    <div class="itd-safe-top sticky top-0 z-3 px-4 pb-4 min-[1174px]:top-4">
       <ItdTabs v-model="tab" :tabs="FEED_TABS" />
     </div>
 

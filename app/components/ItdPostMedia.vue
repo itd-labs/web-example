@@ -31,7 +31,7 @@ function openViewer(position: number) {
   <div v-if="visual.length || audio.length" class="flex flex-col gap-3">
     <div
       v-if="visual.length"
-      class="grid gap-1 overflow-hidden rounded-xl"
+      class="grid gap-1 overflow-hidden rounded-lg"
       :class="single ? 'grid-cols-1' : 'grid-cols-2'"
     >
       <template v-for="(item, position) in visual" :key="item.id">
@@ -80,7 +80,7 @@ function openViewer(position: number) {
     <div
       v-for="item in audio"
       :key="item.id"
-      class="flex items-center gap-3 rounded-xl bg-itd-bg-2 px-4 py-3"
+      class="flex items-center gap-3 rounded-lg bg-itd-bg-2 px-4 py-3"
     >
       <UIcon name="i-lucide-mic" class="size-4 shrink-0 text-itd-muted" />
       <audio :src="item.url" controls class="w-full" />

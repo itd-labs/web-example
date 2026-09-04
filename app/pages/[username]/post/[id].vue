@@ -107,7 +107,7 @@ onMounted(() => reload())
 <template>
   <div class="flex flex-col">
     <header
-      class="sticky top-0 z-3 flex items-center gap-3 px-4 py-3 backdrop-blur-md bg-[var(--itd-glass)] min-[1174px]:rounded-3xl"
+      class="itd-safe-top sticky top-0 z-3 flex items-center gap-3 px-4 pb-3 backdrop-blur-md bg-[var(--itd-glass)] min-[1174px]:rounded-3xl"
     >
       <UButton
         color="neutral"
@@ -147,20 +147,22 @@ onMounted(() => reload())
         />
 
         <div class="itd-card flex flex-col gap-5">
-          <div class="flex items-center justify-between gap-3">
-            <h2 class="font-semibold text-itd-text">
+          <!-- На узком экране заголовок и сортировки в одну строку не помещаются,
+               поэтому строка переносится целиком, а не рвётся посередине. -->
+          <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <h2 class="whitespace-nowrap font-semibold text-itd-text">
               Комментарии
               <span class="ml-1 text-sm font-normal text-itd-muted">
                 {{ formatCount(post.commentsCount) }}
               </span>
             </h2>
 
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-0.5 min-[1174px]:gap-1">
               <button
                 v-for="option in SORTS"
                 :key="option.key"
                 type="button"
-                class="rounded-full px-3 py-1 text-xs transition-colors cursor-pointer"
+                class="whitespace-nowrap rounded-full px-2.5 py-1 text-xs transition-colors cursor-pointer min-[1174px]:px-3"
                 :class="
                   option.key === sort
                     ? 'bg-[var(--itd-tab-active)] text-itd-text'
