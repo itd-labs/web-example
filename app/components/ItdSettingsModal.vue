@@ -174,9 +174,8 @@ async function uploadBanner(event: Event) {
   <UModal v-model:open="open" :ui="{ content: 'max-w-3xl' }">
     <template #content>
       <div class="flex max-h-[85vh] flex-col overflow-hidden bg-itd-block sm:flex-row">
-        <!-- Ниже sm разделы стоят строкой сверху, и закрывать модалку логично из шапки:
-             рядом с заголовком раздела крестик выглядел случайной кнопкой. На широком
-             экране шапки нет — там заголовок и крестик стоят над самим разделом. -->
+        <!-- Ниже sm разделы стоят строкой сверху, и крестик рядом с заголовком раздела
+             выглядел случайной кнопкой: на телефоне он уезжает в шапку. -->
         <header
           class="flex shrink-0 items-center justify-between gap-3 border-b border-itd-border px-4 py-3 sm:hidden"
         >

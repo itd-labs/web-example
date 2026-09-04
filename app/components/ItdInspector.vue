@@ -4,9 +4,6 @@
  *
  * Метаданные приезжают в конверте вместе с ответом того же запроса, ответ — это его тело.
  * На сервере журнал не хранится: здесь всё, что от него остаётся.
- *
- * Панель выезжает справа во всю высоту: снизу она отнимала бы у ленты те самые строки,
- * ради которых её открывают, а на узком экране ещё и налезала на нижнюю навигацию.
  */
 const { entries, open, enabled, toggle, restore } = useInspector()
 const { info } = useMode()
@@ -27,7 +24,6 @@ const IDLE_MS = 5000
 const collapsed = ref(false)
 let idle: ReturnType<typeof setTimeout> | undefined
 
-/** Открытую панель не сворачиваем: её закрывает посетитель, а не таймер. */
 function scheduleCollapse() {
   clearTimeout(idle)
   if (open.value) return
@@ -37,13 +33,12 @@ function scheduleCollapse() {
   }, IDLE_MS)
 }
 
-/** Любое касание кнопки возвращает её на место и отсчитывает простой заново. */
 function wake() {
   collapsed.value = false
   scheduleCollapse()
 }
 
-/** Свёрнутая кнопка живёт одним значком `>_`, поэтому подпись у неё пропадает. */
+/** У свёрнутой кнопки остаётся один значок `>_`. */
 const buttonLabel = computed(() =>
   collapsed.value ? undefined : `Вызовы SDK (${entries.value.length})`,
 )
@@ -86,8 +81,7 @@ onBeforeUnmount(() => {
       />
     </div>
 
-    <!-- Закрытая панель остаётся в разметке ради выезда, поэтому её прячут от
-         клавиатуры и скринридера, а не только сдвигают за край экрана. -->
+    <!-- Закрытая панель остаётся в разметке ради выезда — отсюда `inert`. -->
     <aside
       :inert="!open"
       :aria-hidden="!open"

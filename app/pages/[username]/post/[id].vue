@@ -147,8 +147,7 @@ onMounted(() => reload())
         />
 
         <div class="itd-card flex flex-col gap-5">
-          <!-- На узком экране заголовок и сортировки в одну строку не помещаются,
-               поэтому строка переносится целиком, а не рвётся посередине. -->
+          <!-- На узком экране сортировки уезжают на свою строку целиком. -->
           <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <h2 class="whitespace-nowrap font-semibold text-itd-text">
               Комментарии

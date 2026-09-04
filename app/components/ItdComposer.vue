@@ -61,15 +61,8 @@ const uploadError = ref('')
 const spans = ref<Span[]>([])
 const formatMenu = reactive({ open: false, x: 0, y: 0, start: 0, end: 0 })
 
-/**
- * Последнее выделение в поле.
- *
- * Кнопка разметки забирает фокус у `textarea`, поэтому границы снимаются заранее —
- * на каждое изменение выделения и на нажатие самой кнопки.
- */
+/** Кнопка разметки забирает фокус у поля, поэтому границы выделения снимаются заранее. */
 const selection = reactive({ start: 0, end: 0 })
-
-/** Подсказка «сначала выделите текст» — после нажатия кнопки по пустому выделению. */
 const needsSelection = ref(false)
 
 const FORMAT_ITEMS = [
@@ -151,7 +144,6 @@ function onTextInput() {
   syncSelection()
 }
 
-/** Снимает границы выделения с поля. */
 function syncSelection() {
   const element = field.value
   if (!element) return
@@ -163,10 +155,8 @@ function syncSelection() {
 }
 
 /**
- * Показывает меню разметки, не выпуская его за края экрана: габариты ~210 × 330.
- *
- * Высота считается по видимой части окна: на телефоне её забирает экранная клавиатура,
- * и меню, посчитанное по `innerHeight`, уехало бы под неё.
+ * Держит меню (~210 × 330) в границах экрана. Высота — по видимой части окна:
+ * на телефоне её забирает экранная клавиатура.
  */
 function showFormatMenu(start: number, end: number, x: number, y: number) {
   const view = window.visualViewport
@@ -191,10 +181,7 @@ function onContextMenu(event: MouseEvent) {
   showFormatMenu(selection.start, selection.end, event.clientX, event.clientY)
 }
 
-/**
- * Кнопка разметки — то же меню для касания: правой кнопки мыши на телефоне нет,
- * а долгое нажатие перехватывает системное меню выделения.
- */
+/** То же меню для касания: правой кнопки мыши на телефоне нет. */
 function onFormatButton(event: MouseEvent) {
   if (formatMenu.open) {
     formatMenu.open = false
@@ -323,8 +310,7 @@ watch(text, grow)
 onMounted(() => {
   window.addEventListener('click', closeFormatMenu)
   window.addEventListener('blur', closeFormatMenu)
-  // Выделение мышью и пальцем не всегда доходит до событий самого поля, поэтому
-  // границы дополнительно снимаются с общего события документа.
+  // Выделение пальцем не всегда доходит до событий самого поля.
   document.addEventListener('selectionchange', syncSelection)
   if (props.autofocus) focus()
 })
@@ -477,8 +463,7 @@ defineExpose({ reset, focus })
             </template>
           </UPopover>
 
-          <!-- Меню разметки для касания: pointerdown снимает выделение до того,
-               как кнопка заберёт фокус у поля. -->
+          <!-- `pointerdown` снимает выделение до того, как кнопка заберёт фокус у поля. -->
           <button
             v-if="formatting"
             type="button"

@@ -70,10 +70,7 @@ function openPost(event: MouseEvent) {
   router.push(postPath.value)
 }
 
-/**
- * Вложенная карточка ведёт к исходному посту — в том числе на странице самого репоста,
- * где внешняя карточка уже никуда не ведёт.
- */
+/** Вложенная карточка ведёт к исходному посту — в том числе на странице репоста. */
 function openOriginal(event: MouseEvent) {
   const source = original.value
   if (!source || !opensPage(event)) return
@@ -187,8 +184,7 @@ function openOriginal(event: MouseEvent) {
             <ItdPostText v-if="postText(original).trim()" :text="postText(original)" :spans="postSpans(original)" />
             <ItdPostMedia v-if="original.attachments.length" :attachments="original.attachments" />
 
-            <!-- Счётчики исходного поста только показываются: реакции и репосты
-                 относятся к самой карточке, а не к вложенной. -->
+            <!-- Только показ: реакции относятся к самой карточке, а не к вложенной. -->
             <footer class="flex items-center gap-4 text-xs text-itd-muted tabular-nums">
               <span class="flex items-center gap-1.5" :class="original.isLiked && 'text-itd-like'">
                 <UIcon
