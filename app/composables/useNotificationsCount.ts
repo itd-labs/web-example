@@ -172,7 +172,12 @@ export function useNotificationsRealtime() {
           silent: true,
         })
 
-        const fresh = [...page.items].reverse()
+        // Новые — столько самых свежих непрочитанных, на сколько вырос счётчик: прежние
+        // непрочитанные тоже лежат в пачке.
+        const fresh = page.items
+          .filter(notification => !notification.isRead && !seen.has(notification.id))
+          .slice(0, now - before)
+          .reverse()
         for (const notification of fresh) accept(notification, now)
       } catch {
         // Не достали список — счётчик всё равно обновился, покажем его.

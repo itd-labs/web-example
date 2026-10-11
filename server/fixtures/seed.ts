@@ -1,11 +1,5 @@
 import type { MockServerSeed } from '@itd-api/testing'
-import {
-  encodeBeeCrypt,
-  encodeInvisible,
-  FRAME_END,
-  FRAME_START,
-  INVISIBLE_ALPHABET,
-} from '@itd-api/crypto'
+import { encodeBeeCrypt, encodeInvisible } from '@itd-api/crypto'
 import { NotificationType } from 'itd-api'
 
 /**
@@ -16,16 +10,10 @@ import { NotificationType } from 'itd-api'
  * поэтому сценарии и демо не расходятся.
  */
 
-/** От чьего имени ходит посетитель без токена. */
-export const DEMO_USER = 'alice'
+/** От чьего имени ходит посетитель без токена: `id`, а не имя — имя он может сменить. */
+export const DEMO_USER_ID = 'user-alice'
 
 const DAY = 24 * 60 * 60 * 1000
-
-/** Транспортный контейнер фрагмента встроенного invisible cipher со стабильным ID 0. */
-function invisibleFragment(text: string): string {
-  const cipherId = INVISIBLE_ALPHABET.charAt(0)
-  return `${FRAME_START}${cipherId}${encodeInvisible(text)}${FRAME_END}`
-}
 
 /** Отметка времени «столько-то часов назад» — лента должна выглядеть живой. */
 function hoursAgo(hours: number): string {
@@ -47,7 +35,7 @@ export function sandboxSeed(): MockServerSeed {
     users: [
       {
         id: 'user-alice',
-        username: DEMO_USER,
+        username: 'alice',
         displayName: 'Алиса',
         avatar: '🦊',
         bio: 'Смотрю демо itd-api. Всё, что здесь напишу, видно только мне.',
@@ -143,7 +131,7 @@ export function sandboxSeed(): MockServerSeed {
       {
         id: 'post-5',
         authorId: 'user-nika',
-        content: `Спрятала в посте фразу: ${invisibleFragment('невидимый текст уже здесь')}. Кто с #crypto — прочитает, остальные посмотрят на пустое место.`,
+        content: encodeInvisible('Спрятала в посте фразу: невидимый текст уже здесь. Кто с #crypto — прочитает, остальные посмотрят на пустое место.'),
         createdAt: hoursAgo(14),
         likedBy: ['user-timur'],
       },

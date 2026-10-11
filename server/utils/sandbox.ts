@@ -8,7 +8,7 @@ import {
 } from '@itd-api/testing'
 import { ItdClient } from 'itd-api'
 import { CACHED_OPERATIONS, CACHE_MAX_ENTRIES, CACHE_TTL, CRYPTO_CIPHERS } from './plugins'
-import { DEMO_USER, sandboxSeed } from '../fixtures/seed'
+import { DEMO_USER_ID, sandboxSeed } from '../fixtures/seed'
 
 /**
  * Песочница посетителя без токена.
@@ -72,10 +72,7 @@ function snapshotSeed(snapshot: MockServerSnapshot): MockServerSeed {
     users: snapshot.users,
     posts: snapshot.posts,
     comments: snapshot.comments,
-    notifications: snapshot.notifications.map(notification => ({
-      ...notification,
-      actorIds: notification.actors.map(actor => actor.id),
-    })),
+    notifications: snapshot.notifications,
     shopProducts: snapshot.shopProducts,
     shopOrders: snapshot.shopOrders,
   }
@@ -115,8 +112,8 @@ function mutation(method: string | undefined): boolean {
 }
 
 /** Клиент мока, который после каждой успешной мутации сохраняет новый снимок. */
-function createClient(sandbox: Sandbox, username: string): ItdClient {
-  const options = sandbox.server.clientOptions({ as: username })
+function createClient(sandbox: Sandbox, userId: string): ItdClient {
+  const options = sandbox.server.clientOptions({ as: userId })
   const mockFetch = options.fetch ?? sandbox.server.fetch
 
   const client = new ItdClient({
@@ -152,7 +149,7 @@ function create(
     persisting: Promise.resolve(),
   } satisfies Sandbox
 
-  const client = createClient(sandbox, DEMO_USER)
+  const client = createClient(sandbox, DEMO_USER_ID)
 
   // Порядок важен: инспектор снаружи кэша, иначе ответы из кэша минуют журнал.
   client.use(inspector())
@@ -211,7 +208,7 @@ export function assertQuota(sandbox: Sandbox, text?: string | null) {
 }
 
 /** Кто из жителей может отреагировать на запись посетителя. */
-const LOCALS = ['boris', 'vera', 'grisha', 'nika', 'timur', 'lada']
+const LOCALS = ['user-boris', 'user-vera', 'user-grisha', 'user-nika', 'user-timur', 'user-lada']
 
 /** Чем они комментируют — тем же, чем комментируют в любой ленте. */
 const REPLIES = [
@@ -230,13 +227,13 @@ function pick<T>(items: readonly T[]): T {
 }
 
 /** Клиент жителя. Заводится один раз на песочницу и живёт вместе с ней. */
-function localClient(sandbox: Sandbox, username: string): ItdClient {
-  const existing = sandbox.locals.get(username)
+function localClient(sandbox: Sandbox, userId: string): ItdClient {
+  const existing = sandbox.locals.get(userId)
   if (existing) return existing
 
-  const client = createClient(sandbox, username)
+  const client = createClient(sandbox, userId)
 
-  sandbox.locals.set(username, client)
+  sandbox.locals.set(userId, client)
   return client
 }
 
@@ -256,12 +253,12 @@ export async function livenPost(sandbox: Sandbox, postId: string): Promise<void>
   // Комментарий пишет только один из них — тот же, кто поставил реакцию.
   const commenter = pick(visitors)
 
-  for (const username of visitors) {
-    const client = localClient(sandbox, username)
+  for (const userId of visitors) {
+    const client = localClient(sandbox, userId)
 
     try {
       await client.posts.like(postId)
-      if (username === commenter) await client.posts.comment(postId, { content: pick(REPLIES) })
+      if (userId === commenter) await client.posts.comment(postId, { content: pick(REPLIES) })
     } catch {
       // Мок мог не знать маршрута — тогда пост просто останется без ответа.
     }

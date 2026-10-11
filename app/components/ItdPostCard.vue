@@ -186,19 +186,15 @@ function openOriginal(event: MouseEvent) {
 
             <!-- Только показ: реакции относятся к самой карточке, а не к вложенной. -->
             <footer class="flex items-center gap-4 text-xs text-itd-muted tabular-nums">
-              <span class="flex items-center gap-1.5" :class="original.isLiked && 'text-itd-like'">
-                <UIcon
-                  name="i-lucide-heart"
-                  class="size-4"
-                  :class="original.isLiked && 'fill-current'"
-                />
+              <span class="flex items-center gap-1.5">
+                <UIcon name="i-lucide-heart" class="size-4" />
                 {{ formatCount(original.likesCount) }}
               </span>
               <span class="flex items-center gap-1.5">
                 <UIcon name="i-lucide-message-circle" class="size-4" />
                 {{ formatCount(original.commentsCount) }}
               </span>
-              <span class="flex items-center gap-1.5" :class="original.isReposted && 'text-itd-repost'">
+              <span class="flex items-center gap-1.5">
                 <UIcon name="i-lucide-repeat-2" class="size-4" />
                 {{ formatCount(original.repostsCount) }}
               </span>

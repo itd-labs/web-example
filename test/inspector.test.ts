@@ -2,7 +2,7 @@ import { cache } from '@itd-api/cache'
 import { apiErrorResponse, apiResponse, createMockFetch, createMockServer, userFixture } from '@itd-api/testing'
 import { FeedTab, ItdClient } from 'itd-api'
 import { describe, expect, it } from 'vitest'
-import { DEMO_USER, sandboxSeed } from '../server/fixtures/seed'
+import { DEMO_USER_ID, sandboxSeed } from '../server/fixtures/seed'
 import { collectCalls, inspector } from '../server/utils/inspector'
 
 /**
@@ -14,7 +14,7 @@ import { collectCalls, inspector } from '../server/utils/inspector'
 describe('журнал вызовов', () => {
   it('записывает вызов с длительностью и путём', async () => {
     const server = createMockServer({ seed: sandboxSeed() })
-    const itd = new ItdClient(server.clientOptions({ as: DEMO_USER }))
+    const itd = new ItdClient(server.clientOptions({ as: DEMO_USER_ID }))
     itd.use(inspector())
 
     const collected = await collectCalls(() => itd.posts.list({ tab: FeedTab.Popular, limit: 5 }))
@@ -28,7 +28,7 @@ describe('журнал вызовов', () => {
 
   it('отмечает ответ из кэша', async () => {
     const server = createMockServer({ seed: sandboxSeed() })
-    const itd = new ItdClient(server.clientOptions({ as: DEMO_USER }))
+    const itd = new ItdClient(server.clientOptions({ as: DEMO_USER_ID }))
     itd.use(inspector())
     itd.use(cache({ ttl: 30_000, operations: ['users.me'] }))
 

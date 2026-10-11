@@ -5,6 +5,7 @@ import {
   type Comment,
   type MyProfile,
   type Notification,
+  type OriginalPost,
   type Post,
   type PublicProfile,
 } from 'itd-api'
@@ -18,13 +19,13 @@ import type { TextSpan } from '#shared/itd'
  * вариантом тот, кто показывает, — то есть эти функции.
  */
 
-/** Текст поста: расшифрованный, если скрытые участки нашлись. */
-export function postText(post: Post): string {
+/** Текст поста или исходного поста репоста: расшифрованный, если скрытые участки нашлись. */
+export function postText(post: Post | OriginalPost): string {
   return post.decoded?.content?.text ?? post.content ?? ''
 }
 
 /** Разметка поста в координатах {@link postText}, включая локальные crypto-spans. */
-export function postSpans(post: Post): TextSpan[] {
+export function postSpans(post: Post | OriginalPost): TextSpan[] {
   return post.decoded?.content?.spans ?? post.spans ?? []
 }
 

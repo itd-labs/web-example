@@ -45,6 +45,11 @@ function chunkClasses(types: string[]) {
       : []),
   ]
 }
+
+/** Оформление открытого спойлера: всё, кроме самого спойлера. */
+function revealedClasses(types: string[]) {
+  return chunkClasses(types.filter(type => type !== SpanType.Spoiler))
+}
 </script>
 
 <template>
@@ -71,7 +76,7 @@ function chunkClasses(types: string[]) {
           revealed.has(index)
             ? 'bg-itd-bg-2 text-itd-text'
             : 'itd-tap-text bg-itd-text text-transparent cursor-pointer',
-          chunkClasses(chunk.types.filter(type => type !== SpanType.Spoiler)),
+          revealedClasses(chunk.types),
         ]"
         @click.stop="reveal(index)"
         @keydown="onTapKey"

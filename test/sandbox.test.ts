@@ -2,7 +2,7 @@ import { createMockServer } from '@itd-api/testing'
 import { crypt } from '@itd-api/crypto'
 import { FeedTab, ItdClient } from 'itd-api'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { DEMO_USER, sandboxSeed } from '../server/fixtures/seed'
+import { DEMO_USER_ID, sandboxSeed } from '../server/fixtures/seed'
 
 /**
  * Песочница: сервер API в памяти с состоянием.
@@ -16,7 +16,7 @@ describe('песочница', () => {
 
   beforeEach(() => {
     server = createMockServer({ seed: sandboxSeed() })
-    itd = new ItdClient(server.clientOptions({ as: DEMO_USER }))
+    itd = new ItdClient(server.clientOptions({ as: DEMO_USER_ID }))
     itd.use(crypt())
   })
 
@@ -30,7 +30,7 @@ describe('песочница', () => {
   it('узнаёт демо-пользователя', async () => {
     const me = await itd.users.me()
 
-    expect(me.username).toBe(DEMO_USER)
+    expect(me.id).toBe(DEMO_USER_ID)
   })
 
   it('расшифровывает invisible и beecrypt в постах Ники', async () => {
@@ -67,11 +67,20 @@ describe('песочница', () => {
 
   it('держит состояние посетителей раздельно', async () => {
     const other = createMockServer({ seed: sandboxSeed() })
-    const otherItd = new ItdClient(other.clientOptions({ as: DEMO_USER }))
+    const otherItd = new ItdClient(other.clientOptions({ as: DEMO_USER_ID }))
 
     await itd.posts.create({ content: 'Видно только в первой песочнице' })
 
     const foreign = await otherItd.posts.list({ tab: FeedTab.Popular, limit: 20 })
     expect(foreign.items.some(post => post.content === 'Видно только в первой песочнице')).toBe(false)
+  })
+
+  it('узнаёт посетителя после смены имени и восстановления из снимка', async () => {
+    await itd.users.updateMe({ username: 'alice_renamed' })
+
+    const restored = createMockServer({ seed: server.snapshot() })
+    const me = await new ItdClient(restored.clientOptions({ as: DEMO_USER_ID })).users.me()
+
+    expect(me.username).toBe('alice_renamed')
   })
 })

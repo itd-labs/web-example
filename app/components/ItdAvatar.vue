@@ -2,8 +2,8 @@
 /**
  * Аватар пользователя.
  *
- * На итд.com аватар — это эмодзи клана, а не картинка, поэтому здесь текст в круге,
- * а не `<img>`.
+ * На итд.com аватар — обычно эмодзи клана, его рисуем текстом в круге. Если это адрес
+ * изображения, показываем картинку.
  */
 const props = withDefaults(
   defineProps<{
@@ -24,6 +24,7 @@ const SIZES = {
 } as const
 
 const style = computed(() => SIZES[props.size])
+const isImage = computed(() => /^https?:\/\//i.test(props.avatar))
 </script>
 
 <template>
@@ -31,7 +32,8 @@ const style = computed(() => SIZES[props.size])
     class="relative shrink-0 rounded-full bg-itd-block-2 flex items-center justify-center select-none leading-none"
     :class="[style.box, style.text, ring && 'border-[6px] border-itd-bg bg-itd-block']"
   >
-    <span>{{ avatar }}</span>
+    <img v-if="isImage" :src="avatar" alt="" class="size-full rounded-full object-cover">
+    <span v-else>{{ avatar }}</span>
     <span
       v-if="online"
       class="absolute bottom-0 right-0 rounded-full bg-[#22c55e] border-2 border-itd-block"
